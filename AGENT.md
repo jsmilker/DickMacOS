@@ -46,36 +46,25 @@ murmurkey-mac-master/
 - **Automation**: Successfully pastes text into target apps (Notes, Slack, Xcode, etc.).
 - **Cleanup**: Temporary audio files are removed after the final transcription.
 
-### Recently Fixed 🛠️
-- **Modal Rendering**: Replaced the complex `NSTextView` stack with a simplified `NSTextField` to fix frame initialization and text invisibility.
-- **Build Errors**: Fixed the `NSPanel` member error by applying the corner radius to the `NSVisualEffectView` layer.
-- **Lifecycle**: Added `RecordingPanel.hide()` to the finalization flow so the HUD disappears after transcription.
-
-### Known Issues / Backlog ⚠️
-- **Focus Preservation**: If the HUD is clicked, the target application may lose focus, occasionally causing the paste event to fail.
-- **Concurrency**: Minor `MainActor` isolation warnings in `AppDelegate` handled via `DispatchQueue.main.async`.
-
----
 
 ## Technical Details
 
 ### UI Architecture (`RecordingPanel`)
 - **Panel**: `NSPanel` with `.nonactivatingPanel` to avoid stealing focus from the active text field.
 - **Appearance**: Uses `HUDWindow` material for a native "Siri-like" blurred background.
-- **Rounding**: `visualEffect.layer?.cornerRadius = 18.0` provides the modern macOS aesthetic.
 
 ### Transcription Flow
-User presses Cmd+Shift+D
-↓
-RecordingPanel.show() -> Displays "Listening..."
-↓
-AudioRecorder.startRecording()
-↓
-[Every 2s] Chunk created -> Transcribed -> RecordingPanel.updateText()
-↓
-User presses Cmd+Shift+D again
-↓
-Final Transcription pass -> Paster.paste() -> RecordingPanel.hide()
+- User presses Cmd+Shift+D
+
+- RecordingPanel.show() -> Displays "Listening..."
+
+- AudioRecorder.startRecording()
+
+- [Every 2s] Chunk created -> Transcribed -> RecordingPanel.updateText()
+
+- User presses Cmd+Shift+D again
+
+- Final Transcription pass -> Paster.paste() -> RecordingPanel.hide()
 
 
 ---
@@ -84,9 +73,12 @@ Final Transcription pass -> Paster.paste() -> RecordingPanel.hide()
 
 ### Build & Install
 ```bash
-make release    # Build to .build/
-make install    # Move to /Applications/
-Development Run
-Bash
-WHISPER_MODEL_PATH=/path/to/model.bin \
-  .build/Whisper\ Dictation.app/Contents/MacOS/whisper-dictation
+make clean
+make install
+```
+
+### RUN
+run local `.build`
+```bash
+make run
+```

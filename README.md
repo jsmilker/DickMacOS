@@ -6,16 +6,21 @@ macOS menu bar dictation using whisper.cpp.
 
 ```bash
 brew install whisper-cpp
-curl -L -o /opt/homebrew/share/whisper-cpp/models/ggml-small.bin \
-  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
-make release
+curl -L -o /opt/homebrew/share/whisper-cpp/models/ggml-medium.bin \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin
+make clean
 make install
+
+make run
 ```
 
 ## Permissions
 
-- **Accessibility**: System Settings → Privacy & Security → Accessibility
-- **Microphone**: System Settings → Privacy & Security → Microphone
+- **Accessibility**: System Settings -> Privacy & Security -> Accessibility
+- **Microphone**: System Settings -> Privacy & Security -> Microphone
+
+## TODO:
+  - [ ] package this biach properly for release
 
 ## Usage
 
