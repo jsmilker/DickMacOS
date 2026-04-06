@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Whisper Dictation</string>
+	<string>DickMacOS</string>
 	<key>CFBundleDisplayName</key>
-	<string>Whisper Dictation</string>
+	<string>DickMacOS</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.payhoa.whisper-dictation</string>
+	<string>com.jsmilker.dickmacos</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>1</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>0.0.1</string>
 	<key>CFBundleExecutable</key>
 	<string>whisper-dictation</string>
 	<key>CFBundlePackageType</key>
@@ -20,11 +20,13 @@
 	<string>13.0</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 jsmilker. All rights reserved.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Whisper Dictation needs microphone access to record speech for transcription.</string>
+	<string>DickMacOS needs microphone access to record speech for transcription.</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Whisper Dictation needs to paste transcribed text into the active application.</string>
+	<string>DickMacOS needs to paste transcribed text into the active application.</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>Whisper Dictation needs Accessibility access to detect the Right Control key globally.</string>
+	<string>DickMacOS needs Accessibility access to detect global hotkeys.</string>
 </dict>
 </plist>

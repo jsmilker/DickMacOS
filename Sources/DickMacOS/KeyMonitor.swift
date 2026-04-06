@@ -19,11 +19,11 @@ class KeyMonitor {
 
     func start() {
         monitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.modifierFlags.contains([.command, .shift]) && event.keyCode == 2 {
+            if event.modifierFlags.contains([.control, .shift]) && event.keyCode == 2 {
                 self?.toggleRecording()
             }
         }
-        Logger.log("KeyMonitor started (Cmd+Shift+D)")
+        Logger.log("KeyMonitor started (Ctrl+Shift+D)")
     }
 
     private func toggleRecording() {

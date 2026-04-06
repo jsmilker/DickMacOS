@@ -1,4 +1,4 @@
-# Whisper Dictation
+# DickMacOS
 
 macOS menu bar dictation using whisper.cpp.
 
@@ -19,15 +19,12 @@ make run
 - **Accessibility**: System Settings -> Privacy & Security -> Accessibility
 - **Microphone**: System Settings -> Privacy & Security -> Microphone
 
-## TODO:
-  - [ ] package this biach properly for release
-
 ## Usage
 
-**Cmd+Shift+D** to start/stop recording. Text auto-pastes on stop.
+**Ctrl+Shift+D** to start/stop recording. Text auto-pastes to clipboard on stop.
 
 ## Model
 
 ```bash
-WHISPER_MODEL_PATH=/path/to/model.bin .build/Whisper\ Dictation.app/Contents/MacOS/whisper-dictation
+WHISPER_MODEL_PATH=/path/to/model.bin .build/DickMacOS.app/Contents/MacOS/whisper-dictation
 ```

@@ -1,7 +1,7 @@
 import Foundation
 
 enum ModelManager {
-    static let defaultModelName = "ggml-small.bin"
+    static let defaultModelName = "ggml-medium.bin"
     static let defaultModelURL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin"
 
     static var modelName: String {

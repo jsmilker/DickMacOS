@@ -1,12 +1,15 @@
-# Whisper Dictation - Project Scope
+# DickMacOS - Project Scope
 
 ## Overview
 A macOS menu bar application for high-performance, local speech-to-text dictation. It uses `whisper.cpp` for transcription on Apple Silicon and provides a native, translucent HUD for real-time feedback.
 
+**Version**: 0.0.1  
+**Company**: jsmilker
+
 ## Features
 
 ### Core Functionality
-- **Global Hotkey**: `Cmd+Shift+D` to toggle recording session.
+- **Global Hotkey**: `Ctrl+Shift+D` to toggle recording session.
 - **Menu Bar Icon**: Dynamic microphone icon indicating idle vs. recording status.
 - **Modern HUD Modal**: A rounded, blurred floating panel (`NSVisualEffectView`) showing live transcription text.
 - **Chunk-based Transcription**: Processes audio every 2 seconds to provide live updates as you speak.
@@ -22,7 +25,7 @@ A macOS menu bar application for high-performance, local speech-to-text dictatio
 
 ## Project Structure
 murmurkey-mac-master/
-├── Sources/WhisperDictation/
+├── Sources/DickMacOS/
 │   ├── main.swift              # App entry point
 │   ├── AppDelegate.swift       # Lifecycle & Main Logic
 │   ├── AudioRecorder.swift     # AVAudioRecorder & Chunk management
@@ -40,7 +43,7 @@ murmurkey-mac-master/
 
 ### Working ✅
 - **App Core**: Launches as an accessory app (no Dock icon).
-- **Hotkey**: `Cmd+Shift+D` reliably starts and stops recording.
+- **Hotkey**: `Ctrl+Shift+D` reliably starts and stops recording.
 - **Transcription**: `whisper.cpp` generates text from local audio chunks.
 - **HUD Visibility**: Using `NSTextField` inside `NSVisualEffectView` ensures text is visible in both Light and Dark modes.
 - **Automation**: Successfully pastes text into target apps (Notes, Slack, Xcode, etc.).
@@ -54,7 +57,7 @@ murmurkey-mac-master/
 - **Appearance**: Uses `HUDWindow` material for a native "Siri-like" blurred background.
 
 ### Transcription Flow
-- User presses Cmd+Shift+D
+- User presses Ctrl+Shift+D
 
 - RecordingPanel.show() -> Displays "Listening..."
 
@@ -62,7 +65,7 @@ murmurkey-mac-master/
 
 - [Every 2s] Chunk created -> Transcribed -> RecordingPanel.updateText()
 
-- User presses Cmd+Shift+D again
+- User presses Ctrl+Shift+D again
 
 - Final Transcription pass -> Paster.paste() -> RecordingPanel.hide()
 
@@ -77,8 +80,18 @@ make clean
 make install
 ```
 
-### RUN
-run local `.build`
+### Run
+Run local `.build`
 ```bash
 make run
 ```
+
+### Release
+Build distribution packages (ZIP + DMG)
+```bash
+make dist
+```
+
+Outputs:
+- `dickmacos-0.0.1.zip`
+- `dickmacos-0.0.1.dmg`

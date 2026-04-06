@@ -3,17 +3,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "whisper-dictation",
+    name: "DickMacOS",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "whisper-dictation", targets: ["WhisperDictation"])
+        .executable(name: "dickmacos", targets: ["DickMacOS"])
     ],
     targets: [
         .executableTarget(
-            name: "WhisperDictation",
-            path: "Sources/WhisperDictation"
+            name: "DickMacOS",
+            path: "Sources/DickMacOS"
         )
     ]
 )
