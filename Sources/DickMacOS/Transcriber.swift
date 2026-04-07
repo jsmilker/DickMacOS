@@ -35,11 +35,7 @@ enum Transcriber {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: data, encoding: .utf8) ?? ""
 
-            var trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
-
-            if trimmed.hasPrefix("[") || trimmed.hasPrefix("(") {
-                trimmed = ""
-            }
+            let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
             if deleteAfter {
                 try? FileManager.default.removeItem(at: fileURL)

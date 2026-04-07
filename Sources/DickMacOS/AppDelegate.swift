@@ -6,6 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var statusMenuItem: NSMenuItem!
     private var recordMenuItem: NSMenuItem!
     private var keyMonitor: KeyMonitor!
+    private var contextMenu: NSMenu!
 
     private var modelReady = false
     private var isRecording = false
@@ -18,42 +19,88 @@ class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         Task { @MainActor in
             self.setupMenuBar()
         }
-        Logger.log("Menu bar ready, checking model...")
-        ensureModel()
+
+        PermissionChecker.requestAllPermissions {
+            Task { @MainActor in
+                Logger.log("Menu bar ready, checking model...")
+                self.ensureModel()
+            }
+        }
     }
 
     @MainActor private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        statusItem.button?.target = self
-        statusItem.button?.action = #selector(toggleRecording)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Whisper Dictation")
+            button.target = self
+            button.action = #selector(toggleRecording)
+            button.image = NSImage(named: "Inactive")
+            button.image?.isTemplate = false
         }
 
-        let menu = NSMenu()
+        // Build context menu
+        contextMenu = NSMenu()
 
         statusMenuItem = NSMenuItem(title: "Status: Idle", action: nil, keyEquivalent: "")
         statusMenuItem.isEnabled = false
-        menu.addItem(statusMenuItem)
+        contextMenu.addItem(statusMenuItem)
 
         recordMenuItem = NSMenuItem(title: "Start Recording", action: #selector(toggleRecording), keyEquivalent: "")
         recordMenuItem.target = self
-        menu.addItem(recordMenuItem)
+        contextMenu.addItem(recordMenuItem)
 
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q"))
+        contextMenu.addItem(NSMenuItem.separator())
 
-        statusItem.menu = menu
+        let changeShortcutMenuItem = NSMenuItem(title: "Change Shortcut...", action: #selector(changeShortcut), keyEquivalent: "")
+        changeShortcutMenuItem.target = self
+        contextMenu.addItem(changeShortcutMenuItem)
+
+        let audioSourceMenuItem = NSMenuItem(title: " \(AudioRecorder.shared.currentAudioDeviceName)", action: nil, keyEquivalent: "")
+        audioSourceMenuItem.isEnabled = false
+        contextMenu.addItem(audioSourceMenuItem)
+
+        contextMenu.addItem(NSMenuItem.separator())
+        contextMenu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q"))
+
+        // No menu attached - click always triggers recording
+        // Right-click users can use the menu items in the future
     }
 
-    @objc private func toggleRecording() {
-        Task { @MainActor in
-            if isRecording {
-                handleKeyReleased()
-            } else {
-                handleRecordingTriggered()
-            }
+    @MainActor @objc private func toggleRecording() {
+        Logger.log("toggleRecording called, isRecording=\(isRecording)")
+        if isRecording {
+            handleKeyReleased()
+        } else {
+            handleRecordingTriggered()
+        }
+    }
+
+    @MainActor @objc private func changeShortcut() {
+        let alert = NSAlert()
+        alert.messageText = "Change Hotkey Shortcut"
+        alert.informativeText = "Enter shortcut format: Modifier+Modifier+Key\nExample: Option+Shift+D or Ctrl+Alt+K"
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+        textField.placeholderString = "Option+Shift+D"
+        textField.stringValue = UserDefaults.standard.string(forKey: "HotkeyShortcut") ?? "Option+Shift+D"
+        alert.accessoryView = textField
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            let newShortcut = textField.stringValue
+            UserDefaults.standard.set(newShortcut, forKey: "HotkeyShortcut")
+
+            keyMonitor = KeyMonitor(
+                onRecordingTriggered: { [weak self] in
+                    self?.handleRecordingTriggered()
+                },
+                onKeyReleased: { [weak self] in
+                    self?.handleKeyReleased()
+                }
+            )
+            keyMonitor.start()
         }
     }
 
@@ -63,21 +110,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
             self.recordMenuItem.title = recording ? "Stop Recording" : "Start Recording"
 
             if let button = self.statusItem.button {
-                let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Whisper Dictation")
-
-                if recording {
-                    let config = NSImage.SymbolConfiguration(paletteColors: [.red])
-                    button.image = image?.withSymbolConfiguration(config)
-                } else {
-                    button.image = image
-                }
+                button.image = recording ? NSImage(named: "Active") : NSImage(named: "Inactive")
+                button.image?.isTemplate = false
             }
         }
     }
 
-    private func ensureModel() {
-        Logger.log("Model exists: \(ModelManager.modelExists) at \(ModelManager.modelPath.path)")
+    @MainActor private func ensureModel() {
+        Logger.log("Checking for model...")
+        
         if ModelManager.modelExists {
+            Logger.log("Model found at \(ModelManager.modelPath.path)")
             modelReady = true
             updateStatus("Idle", recording: false)
             setupKeyMonitor()
@@ -86,22 +129,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
             return
         }
 
-        updateStatus("Downloading model...", recording: false)
+        if ModelManager.brewModelExists {
+            Logger.log("Using brew model")
+            modelReady = true
+            updateStatus("Idle", recording: false)
+            setupKeyMonitor()
+            setupAudioChunkHandler()
+            Logger.log("Ready to record")
+            return
+        }
 
-        ModelManager.ensureModel(progress: { pct in
-            DispatchQueue.main.async {
-                let percent = Int(pct * 100)
-                self.updateStatus("Downloading model... \(percent)%", recording: false)
+        Logger.log("Model not found, downloading...")
+        updateStatus("Downloading model...", recording: false)
+        DownloadPanel.shared.show()
+
+        ModelManager.ensureModel(progress: { [weak self] pct in
+            Task { @MainActor in
+                DownloadPanel.shared.updateProgress(pct)
+                self?.updateStatus("Downloading model... \(Int(pct * 100))%", recording: false)
             }
-        }, completion: { success in
-            DispatchQueue.main.async {
+        }, completion: { [weak self] success in
+            Task { @MainActor in
+                DownloadPanel.shared.hide()
                 if success {
-                    self.modelReady = true
-                    self.updateStatus("Idle", recording: false)
-                    self.setupKeyMonitor()
-                    self.setupAudioChunkHandler()
+                    self?.modelReady = true
+                    self?.updateStatus("Idle", recording: false)
+                    self?.setupKeyMonitor()
+                    self?.setupAudioChunkHandler()
                 } else {
-                    self.updateStatus("Model download failed", recording: false)
+                    self?.updateStatus("Model download failed", recording: false)
                 }
             }
         })

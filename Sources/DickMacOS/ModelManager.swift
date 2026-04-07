@@ -22,16 +22,40 @@ enum ModelManager {
     }
 
     static var modelURL: String {
-        ProcessInfo.processInfo.environment["WHISPER_MODEL_URL"] ?? defaultModelURL
+        ProcessInfo.processInfo.environment["WHISPER_MODEL_PATH"] ?? defaultModelURL
     }
 
     static var modelExists: Bool {
-        FileManager.default.fileExists(atPath: modelPath.path)
+        FileManager.default.fileExists(atPath: modelPath.path) || brewModelExists
+    }
+
+    static var brewModelPath: URL? {
+        let brewPrefixes = [
+            "/opt/homebrew/share/whisper-cpp/models/ggml-medium.bin",
+            "/usr/local/share/whisper-cpp/models/ggml-medium.bin"
+        ]
+        for path in brewPrefixes {
+            if FileManager.default.fileExists(atPath: path) {
+                return URL(fileURLWithPath: path)
+            }
+        }
+        return nil
+    }
+
+    static var brewModelExists: Bool {
+        brewModelPath != nil
     }
 
     /// Downloads the model if needed. Calls progress with 0.0-1.0, then completion with success/failure.
     static func ensureModel(progress: @escaping (Double) -> Void, completion: @escaping (Bool) -> Void) {
         if modelExists {
+            Logger.log("Model found at \(modelPath.path)")
+            completion(true)
+            return
+        }
+
+        if let brewPath = brewModelPath {
+            Logger.log("Using brew model at \(brewPath.path)")
             completion(true)
             return
         }

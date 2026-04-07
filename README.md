@@ -11,17 +11,45 @@ curl -L -o /opt/homebrew/share/whisper-cpp/models/ggml-medium.bin \
 make clean
 make install
 
+# Run from terminal (inherits terminal's permissions - no dialogs needed)
 make run
+```
+
+> **Note**: Running from terminal is recommended. The app inherits terminal's permissions, avoiding macOS permission dialogs.
+
+
+## Build
+
+```bash
+make release
+```
+
+## Publish Release to GH
+
+```bash
+make dist
+
+gh auth login
+
+gh release create v1.0.0 \
+    dickmacos-1.0.0.dmg \
+    dickmacos-1.0.0.zip \
+    --title "v1.0.0" \
+    --notes "foobar"
 ```
 
 ## Permissions
 
-- **Accessibility**: System Settings -> Privacy & Security -> Accessibility
-- **Microphone**: System Settings -> Privacy & Security -> Microphone
+**Running from terminal**: No setup needed - inherits terminal's permissions.
+
+**Running from Finder**: Manually grant in System Settings:
+- **Accessibility**: System Settings → Privacy & Security → Accessibility
+- **Microphone**: System Settings → Privacy & Security → Microphone
+- **Automation**: System Settings → Privacy & Security → Automation
 
 ## Usage
 
-**Ctrl+Shift+D** to start/stop recording. Text auto-pastes to clipboard on stop.
+**Option+Shift+D** to start/stop recording. Text auto-pastes to clipboard on stop.
 
 ## Model
 

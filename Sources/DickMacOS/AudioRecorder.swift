@@ -12,6 +12,15 @@ class AudioRecorder: @unchecked Sendable {
     private var chunkCount = 0
     private var chunkURLs: [URL] = []
 
+    var currentAudioDeviceName: String {
+        return AVCaptureDevice.default(for: .audio)?.localizedName ?? "Default Microphone"
+    }
+
+    static var availableAudioDevices: [String] {
+        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInMicrophone], mediaType: .audio, position: .unspecified)
+        return discoverySession.devices.map { $0.localizedName }
+    }
+
     private init() {}
     
     func setChunkCallback(_ callback: @escaping (URL) -> Void) {
@@ -39,7 +48,7 @@ class AudioRecorder: @unchecked Sendable {
             recorder = try AVAudioRecorder(url: url, settings: settings)
             recorder?.isMeteringEnabled = true
             recorder?.record()
-            print("Recording started: \(url.lastPathComponent)")
+            print("Recording started: \(url.lastPathComponent) (Input: \(currentAudioDeviceName))")
             
             chunkTimer = Timer.scheduledTimer(withTimeInterval: chunkDuration, repeats: false) { [weak self] _ in
                 self?.triggerChunk()
